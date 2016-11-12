@@ -1,11 +1,13 @@
 (ns sudoku.core
   (:require 
-    [clojure.string :as str])
+    [clojure.string :as str]
+    [clojure.data :as data])
   (:gen-class))
 
 (def MAX-INDEX 81)
 (def MAX-NUM 9)
 (def SQ-NUM 3)
+(def NUM-SET #{1 2 3 4 5 6 7 8 9})
 
 (defn parse-file [filename]
   (let [lines (str/split-lines (slurp filename))]
@@ -36,6 +38,17 @@
           (recur (+ num 1) (conj sq-val (nth cells (+ sq-starting-index (* num MAX-NUM))) (nth cells (+ sq-starting-index (* num MAX-NUM) 1)) (nth cells (+ sq-starting-index (* num MAX-NUM) 2))))
           sq-val)))
 
+(defn get-valid-nums [cells index]
+  (let [row-starting-index (* (quot index MAX-NUM) MAX-NUM)
+        col-starting-index (mod index MAX-NUM)
+        square-starting-index (+ (* (quot index (* MAX-NUM SQ-NUM)) (* MAX-NUM SQ-NUM)) (* (quot (mod index MAX-NUM) SQ-NUM) SQ-NUM))
+        row-vals (subvec cells row-starting-index (+ row-starting-index MAX-NUM))
+        col-vals (get-col-vals cells col-starting-index)
+        sq-vals (get-sq-vals cells square-starting-index)]
+
+       (data/diff NUM-SET (into #{} (into (into row-vals col-vals) sq-vals)))))
+
+
 (defn valid-cell [cells index num]
   (let [row-starting-index (* (quot index MAX-NUM) MAX-NUM)
         col-starting-index (mod index MAX-NUM)
@@ -48,6 +61,24 @@
          true)))
 
 (defn solve-next-cell [cells index]
+  (if (> MAX-INDEX index)
+    ;; do we need to solve or already something here?
+    (if (= (nth cells index) 0)
+      ;;need to solve - get valid numbers
+      (let [valid-nums (first (get-valid-nums cells index))]
+           (loop [nums valid-nums]
+;;               (println (str index "-" nums))
+                 (if nums
+                   (let [num (first nums)
+                         solution (solve-next-cell (assoc cells index num) (+ index 1))]
+                        (if (empty? solution)
+                          (recur (next nums))
+                          solution))
+                   [])))
+      (solve-next-cell cells (+ index 1)))
+    cells))
+
+(defn solve-next-cell-brute [cells index]
   (if (> MAX-INDEX index)
     ;; do we need to solve or already something here?
     (if (= (nth cells index) 0)
