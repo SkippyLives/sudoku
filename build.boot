@@ -1,6 +1,9 @@
 (set-env!
-  :resource-paths #{"src/clj"}
+  :source-paths #{"src/clj"}
   :dependencies '[[me.raynes/conch "0.8.0"]])
+
+(def version "0.1.1")
+
 
 (deftask build
   "Build my project."
@@ -9,9 +12,11 @@
      (aot 
          :namespace ['sudoku.core])
      (pom
-         :project 'sudoku
-         :version "0.1.0") 
+         :project 'com.puffingtonpress/sudoku
+         :version version) 
+     (uber)
      (jar
          :main 'sudoku.core
-         :manifest {"Foo" "bar"})
-     (install)))
+         :file (str "sudoku-" version ".jar"))
+     (target 
+         :dir #{"target"})))
