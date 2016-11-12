@@ -1,6 +1,7 @@
 (ns sudoku.core
   (:require 
-    [clojure.string :as str]))
+    [clojure.string :as str])
+  (:gen-class))
 
 (def MAX-INDEX 81)
 (def MAX-NUM 9)
